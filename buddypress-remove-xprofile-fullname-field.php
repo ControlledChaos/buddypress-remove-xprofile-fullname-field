@@ -8,7 +8,7 @@
 * Plugin URI: http://daan.kortenba.ch/
 * Description: This plugin removes the default BuddyPress xprofile fullname field
 * Author: Daan Kortenbach
-* Version: 0.1
+* Version: 0.2
 * Author URI: http://daan.kortenba.ch/
 * License: GPLv2
 */
@@ -24,15 +24,45 @@ add_filter( 'xprofile_group_fields', 'dk_bp_remove_xprofile_fullname_field', 10,
  */
 function dk_bp_remove_xprofile_fullname_field( $fields ){
 
-	// Get 'bp-xprofile-fullname-field-name', if not present the default is 'Name'.
-	$name = get_option( 'bp-xprofile-fullname-field-name', 'Name' );
+	if( ! bp_is_register_page() )
+		return $fields;
 
-	// Remove 'bp-xprofile-fullname-field-name' from array.
+	// Remove item from array.
 	foreach ($fields as $key => $value ) {
-		if ( $value->name == $name )
+		if ( $value->name == BP_XPROFILE_FULLNAME_FIELD_NAME )
 			unset( $fields[ $key ] );
 	}
 
-	// Reset array keys and return
-	return array_values( $fields );
+	// Return the fields
+	return $fields;
+}
+
+add_action( 'bp_core_activated_user', 'dk_bp_set_user_nicename', 9999 );
+/**
+ * Resets user because it got the wrong user meta (WTF BuddyPress, why?).
+ * See xprofile_sync_wp_profile() in BuddyPress.
+ *
+ * @param  integer $user_id
+ * @return void
+ *
+ * @author Daan Kortenbach
+ */
+function dk_bp_set_user_nicename( $user_id ){
+
+	// Get user data
+	$user = get_userdata( $user_id );
+
+	// Set new user data
+	$userdata = array(
+		'ID' => $user_id,
+		'user_nicename' => $user->user_login,
+		'display_name' => $user->user_login,
+		'nickname' => $user->user_login,
+		'first_name' => $user->user_login
+	);
+	// Update user
+	wp_update_user( $userdata );
+
+	// Update xprofile
+	xprofile_set_field_data( BP_XPROFILE_FULLNAME_FIELD_NAME, $user_id, $user->user_login );
 }
