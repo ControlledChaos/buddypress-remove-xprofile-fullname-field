@@ -1,0 +1,1 @@
+This plugin removes the default BuddyPress xprofile fullname field.
