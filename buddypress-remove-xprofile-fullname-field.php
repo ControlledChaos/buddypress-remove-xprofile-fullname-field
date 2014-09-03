@@ -27,10 +27,19 @@ function dk_bp_remove_xprofile_fullname_field( $fields ){
 	if( ! bp_is_register_page() )
 		return $fields;
 
+	$rekey = false;
+
 	// Remove item from array.
 	foreach ($fields as $key => $value ) {
-		if ( $value->name == BP_XPROFILE_FULLNAME_FIELD_NAME )
+		if ( $value->name == BP_XPROFILE_FULLNAME_FIELD_NAME ) {
 			unset( $fields[ $key ] );
+
+			$rekey = true;
+		}
+	}
+
+	if ( $rekey ) {
+		$fields = array_values( $fields );
 	}
 
 	// Return the fields
